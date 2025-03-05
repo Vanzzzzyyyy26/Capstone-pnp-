@@ -44,31 +44,34 @@ if ($id > 0) {
                 }
             }
 
-            $evidence = [];
-            if ($result['evidence_paths']) {
-                $evidence = array_unique(explode(',', $result['evidence_paths']));
-            }
+           // Fetch evidence separately
+$stmtEvidence = $pdo->prepare("SELECT evidence_path FROM tbl_evidence WHERE complaints_id = ?");
+$stmtEvidence->execute([$id]);
+$evidencePaths = $stmtEvidence->fetchAll(PDO::FETCH_COLUMN);
 
-            // Return all data including the certificate path
-            echo json_encode([
-                'complaint_name' => $result['complaint_name'],
-                'complaints' => $result['complaints'],
-                'date_filed' => $result['date_filed'],
-                'category' => $result['category'],
-                'barangay_name' => $result['barangay_name'],
-                'cp_number' => $result['cp_number'],
-                'complaints_person' => $result['complaints_person'],
-                'gender' => $result['gender'],
-                'place_of_birth' => $result['place_of_birth'],
-                'age' => $result['age'],
-                'educational_background' => $result['educational_background'],
-                'civil_status' => $result['civil_status'],
-                'purok' => $result['purok'],
-                'nationality' => $result['nationality'],
-                'cert_path' => $result['certificate_path'],  // Send certificate path
-                'evidence' => $evidence,
-                'hearing_history' => $hearing_history
-            ]);
+// Check if evidence paths are retrieved
+error_log("Evidence Paths: " . json_encode($evidencePaths));
+
+echo json_encode([
+    'complaint_name' => $result['complaint_name'],
+    'complaints' => $result['complaints'],
+    'date_filed' => $result['date_filed'],
+    'category' => $result['category'],
+    'barangay_name' => $result['barangay_name'],
+    'cp_number' => $result['cp_number'],
+    'complaints_person' => $result['complaints_person'],
+    'gender' => $result['gender'],
+    'place_of_birth' => $result['place_of_birth'],
+    'age' => $result['age'],
+    'educational_background' => $result['educational_background'],
+    'civil_status' => $result['civil_status'],
+    'purok' => $result['purok'],
+    'nationality' => $result['nationality'],
+    'cert_path' => $result['certificate_path'],
+    'evidence' => $evidencePaths,  // Use the new evidence array
+    'hearing_history' => $hearing_history
+]);
+
         } else {
             echo json_encode(['error' => 'No data found for the given complaint ID.']);
         }

@@ -646,7 +646,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
    
-     function confirmLogout() {
+  
+        function confirmLogout() {
         Swal.fire({
             title: "Are you sure?",
             text: "You will be logged out.",
@@ -661,7 +662,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.location.href = " ../reg/login.php?logout=<?php echo $_SESSION['user_id']; ?>";
             }
         });
-        }
+    }
     </script>
 </body>
 </html>

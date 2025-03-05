@@ -37,14 +37,21 @@ include './connection/dbconn.php';
         border-radius: 20px; /* Adjust this value as needed */
     }
 
+    .navbar-toggler {
+    border-color: white;
+}
+
+.navbar-toggler-icon {
+    filter: invert(1);
+}
+
     /* Adjust for mobile screens */
     @media (max-width: 768px) {
         .carousel-item img {
             height: 300px;
             border-radius: 15px; /* Smaller border-radius for mobile */
         }
-    }
-    </style>
+    }    </style>
 </head>
 <body>
 

@@ -1,8 +1,8 @@
 <?php
 session_start();
 include '../connection/dbconn.php';
-require 'otp_sender.php'; // Include OTP function
-require_once( 'vendor/autoload.php' );
+require 'otp_sender.php';
+require_once('vendor/autoload.php');
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -12,44 +12,52 @@ function getPostData($key) {
     return isset($_POST[$key]) ? trim($_POST[$key]) : null;
 }
 
-function isStrongPassword($password) {
-    $pattern = '/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/';
-    return preg_match($pattern, $password);
+// Ensure 'uploads' directory exists
+$upload_directory = '../uploads/';
+if (!file_exists($upload_directory)) {
+    mkdir($upload_directory, 0777, true);
 }
 
+$pic_data = "";
+$selfie_data = "";
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $upload_directory = '../uploads/'; // Directory for uploaded images
-    $pic_data = '';
-    $selfie_path = '';
-
     // Handle Profile Picture Upload
-    if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
-        $file_extension = pathinfo($_FILES['profile_picture']['name'], PATHINFO_EXTENSION);
-        $new_file_name = uniqid('profile_') . '.' . $file_extension;
-        $destination = $upload_directory . $new_file_name;
+    if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === UPLOAD_ERR_OK) {
+        $profileTmp = $_FILES['profile_pic']['tmp_name'];
+        $profileExt = strtolower(pathinfo($_FILES['profile_pic']['name'], PATHINFO_EXTENSION));
+        $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
 
-        if (move_uploaded_file($_FILES['profile_picture']['tmp_name'], $destination)) {
-            $pic_data = $destination;
+        if (in_array($profileExt, $allowedTypes)) {
+            $pic_data = $upload_directory . uniqid('profile_') . '.' . $profileExt;
+            if (!move_uploaded_file($profileTmp, $pic_data)) {
+                die("<script>alert('Profile picture upload failed!'); window.history.back();</script>");
+            }
         } else {
-            echo "<script>alert('Error uploading profile picture!');</script>";
-            exit();
+            die("<script>alert('Invalid profile picture format! Use JPG, PNG, or GIF.'); window.history.back();</script>");
         }
+    } else {
+        die("<script>alert('Profile picture is required!'); window.history.back();</script>");
     }
 
     // Handle Selfie Upload
-    if (isset($_FILES['selfie']) && $_FILES['selfie']['error'] === UPLOAD_ERR_OK) {
-        $selfie_extension = pathinfo($_FILES['selfie']['name'], PATHINFO_EXTENSION);
-        $new_selfie_name = uniqid('selfie_') . '.' . $selfie_extension;
-        $selfie_path = $upload_directory . $new_selfie_name;
+    if (isset($_FILES['selfie_path']) && $_FILES['selfie_path']['error'] === UPLOAD_ERR_OK) {
+        $selfieTmp = $_FILES['selfie_path']['tmp_name'];
+        $selfieExt = strtolower(pathinfo($_FILES['selfie_path']['name'], PATHINFO_EXTENSION));
 
-        if (!move_uploaded_file($_FILES['selfie']['tmp_name'], $selfie_path)) {
-            echo "<script>alert('Error uploading selfie!');</script>";
-            header("Location: register.php");
-
-            exit();
+        if (in_array($selfieExt, $allowedTypes)) {
+            $selfie_data = $upload_directory . uniqid('selfie_') . '.' . $selfieExt;
+            if (!move_uploaded_file($selfieTmp, $selfie_data)) {
+                die("<script>alert('Selfie upload failed!'); window.history.back();</script>");
+            }
+        } else {
+            die("<script>alert('Invalid selfie format! Use JPG, PNG, or GIF.'); window.history.back();</script>");
         }
+    } else {
+        die("<script>alert('Selfie is required!'); window.history.back();</script>");
     }
 
+    // User Data Array
     $user_data = [
         'first_name' => getPostData('first_name'),
         'middle_name' => getPostData('middle_name'),
@@ -70,38 +78,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         'place_of_birth' => getPostData('place_of_birth'),
         'purok' => getPostData('purok'),
         'educational_background' => getPostData('educational_background'),
-        'pic_data' => $pic_data, // Store uploaded profile picture path
-        'selfie_path' => $selfie_path // Store uploaded selfie path
+        'pic_data' => $pic_data,
+        'selfie_path' => $selfie_data
     ];
 
-    if (in_array(null, $user_data, true)) {
-        echo "<script>alert('Please fill out all required fields!');</script>";
-        exit();
+    // Check if barangay_name is received
+    if (empty($user_data['barangay_name'])) {
+        die("<script>alert('Barangay name is missing! Please select a barangay.'); window.history.back();</script>");
     }
-    
-    if ($user_data['password'] !== $user_data['confirm_password']) {
-        echo "<script>alert('Passwords do not match!');</script>";
-        exit();
-    }
-    
-    if (!isStrongPassword($user_data['password'])) {
-        echo "<script>alert('Weak password! It must have uppercase, lowercase, number, and special character.');</script>";
-        exit();
-    }
-    
+
+    // Check if CP number already exists
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM tbl_users WHERE cp_number = ?");
     $stmt->execute([$user_data['cp_number']]);
     if ($stmt->fetchColumn() > 0) {
-        echo "<script>alert('CP Number already exists!');</script>";
-        exit();
+        die("<script>alert('CP Number already exists!'); window.history.back();</script>");
     }
-    
-    // Generate OTP
+
+    // Generate OTP and send
     $otp = rand(100000, 999999);
     $_SESSION['otp'] = $otp;
     $_SESSION['user_data'] = $user_data;
-    
-    // Send OTP via Semaphore
     sendOTP($user_data['cp_number'], $otp);
 
     // Redirect to OTP verification page
@@ -109,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit();
 }
 ?>
+
 
 
 <!DOCTYPE html>
@@ -186,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
     <div class="container">
         <h1 class="text-center mb-4">Register</h1>
-        <form id="registerForm" method="post">
+        <form id="registerForm" method="post"  enctype="multipart/form-data">
             <div class="row">
                 <!-- First Name and Middle Name -->
                 <div class="col-md-6 mb-3">
@@ -325,18 +322,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
 
 
-                <!-- Profile Picture Upload -->
-                <div class="col-md-6 mb-3">
-                    <label for="profile_picture" class="form-label">Profile Picture:</label>
-                    <input type="file" id="profile_picture" name="profile_picture" class="form-control">
-                </div>
-            </div>
+            <div class="row">
+        <!-- Profile Picture Upload -->
+        <div class="col-md-6 mb-3">
+            <label for="profile_pic" class="form-label">Profile Picture:</label>
+            <input type="file" id="profile_pic" name="profile_pic" class="form-control" accept="image/*" >
+        </div>
 
-            
-          </div>
-          <div class="form-group">
-        <label for="selfie">Upload Selfie:</label>
-        <input type="file" name="selfie" accept="image/*" class="form-control" required>
+        <!-- Selfie Upload -->
+        <div class="col-md-6 mb-3">
+            <label for="selfie_path" class="form-label">Upload Selfie:</label>
+            <input type="file" id="selfie_path" name="selfie_path" class="form-control" accept="image/*" >
+        </div>
     </div>
             <div class="col-12 mb-3">
                 <label for="security_question" class="form-label">Security Question 1:</label>

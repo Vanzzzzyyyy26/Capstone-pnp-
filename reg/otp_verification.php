@@ -77,8 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 // Insert user data
-                $stmt = $pdo->prepare("INSERT INTO tbl_users (first_name, middle_name, last_name, extension_name, cp_number, password, accountType, barangays_id, security_question, security_answer, civil_status, nationality, age, birth_date, gender, place_of_birth, purok, educational_background) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO tbl_users (first_name, middle_name, last_name, extension_name, cp_number, password, accountType, barangays_id, security_question, security_answer, civil_status, nationality, age, birth_date, gender, place_of_birth, purok, educational_background,pic_data,selfie_path) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)");
 
                 $stmt->execute([
                     $user_data['first_name'], $user_data['middle_name'], $user_data['last_name'], 
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $user_data['security_question'], $hashed_answer, 
                     $user_data['civil_status'], $user_data['nationality'], 
                     $user_data['age'], $user_data['birth_date'], $user_data['gender'], 
-                    $user_data['place_of_birth'], $user_data['purok'], $user_data['educational_background']
+                    $user_data['place_of_birth'], $user_data['purok'], $user_data['educational_background'],$user_data['selfie_path'],$user_data['pic_data'],
                 ]);
 
                 // Commit transaction
