@@ -307,13 +307,7 @@ include '../includes/edit-profile.php';
         <h1>Dashboard</h1>
         <div class="card-container">
           
-            <div class="card">
-            <i class="bi bi-skip-forward-circle-fill" style="font-size:40px; color: cyan;"></i>
-                <h2><?php echo htmlspecialchars($data['pnp'] ?? 0); ?></h2>
-              
-                <p>Forwarded Cases</p>
-                </a>
-            </div>
+        
             <div class="card">
 
             <i class="bi bi-x-octagon" style="font-size:40px; color: red;"></i>

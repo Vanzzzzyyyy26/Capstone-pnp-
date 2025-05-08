@@ -15,8 +15,23 @@ $extensionName = isset($_SESSION['extension_name']) ? $_SESSION['extension_name'
 $cp_number = isset($_SESSION['cp_number']) ? $_SESSION['cp_number'] : '';
 $barangay_name = $_SESSION['barangay_name'] ?? '';
 $pic_data = isset($_SESSION['pic_data']) ? $_SESSION['pic_data'] : '';
-$results_per_page = 10; 
+$results_per_page = 10;
 
+
+
+
+// Only fetch complaints where barangay_saan matches the user's barangay
+// Debug output (optional)
+
+$stmt = $pdo->prepare("
+    SELECT complaint_name 
+    FROM tbl_complaints 
+    WHERE status = 'approved' 
+    AND LOWER(TRIM(barangay_saan)) = :barangay_saan
+");
+$stmt->bindParam(':barangay_saan', $barangay_name);
+$stmt->execute();
+$complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Determine current page
 $page = !isset($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] <= 0 ? 1 : $_GET['page'];
 

@@ -56,7 +56,9 @@
         </li>
 
 
-      
+        <li class="nav-item">
+        <a class="nav-link" href="report.php"><i class="bi bi-clipboard-data"></i><span class="nav-text">report </span></a>
+        </li>
      
      
     </ul>

@@ -58,7 +58,7 @@ include './connection/dbconn.php';
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg">
     <div class="container">
-        <a class="navbar-brand" href="#">PNP Police Station, Echague, Isabela</a>
+        <a class="navbar-brand" href="#"> Barangay of  Echague, Isabela</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -80,7 +80,7 @@ include './connection/dbconn.php';
     <div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
             <div class="carousel-item active">
-                <img src="pic.jpg" class="d-block w-100" alt="Modern Home">
+                <img src="bb.png" class="d-block w-100" alt="Modern Home">
             </div>
             <div class="carousel-item">
                 <img src="pic1.jpg" class="d-block w-100" alt="Villa Home">

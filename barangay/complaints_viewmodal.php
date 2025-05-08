@@ -93,7 +93,7 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="moveToPnpBtn">Move to PNP</button>
+<button type="button" class="btn btn-secondary" id="moveToPnpBtn" style="display:none;">Move to PNP</button>
                 <button type="button" class="btn btn-secondary" id="settleInBarangayBtn">Settle in Barangay</button>
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#viewsComplaintModal" id="setHearingBtn">
@@ -121,26 +121,19 @@
 </div>
 
 <!-- Complaint Certificate Upload Form -->
-<?php
-require_once '../connection/dbconn.php';
-
-// Fetch approved complaints for the dropdown
-$stmt = $pdo->prepare("SELECT complaint_name FROM tbl_complaints WHERE status = 'approved'");
-$stmt->execute();
-$complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
-?>
 
 <form action="upload.php" method="post" enctype="multipart/form-data" class="mt-3">
     <h5>  Add  certificate  of  file  action</h5>
     <label for="complaint_name">Select complainant:</label>
-    <select name="complaint_name" id="complaint_name" class="form-select mb-2" required>
-        <option value="">-- Select complainant --</option>
-        <?php foreach ($complaints as $complaint): ?>
-            <option value="<?= htmlspecialchars($complaint['complaint_name']); ?>">
-                <?= htmlspecialchars($complaint['complaint_name']); ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
+<select name="complaint_name" id="complaint_name" class="form-select mb-2" required>
+    <option value="">-- Select complainant --</option>
+    <?php foreach ($complaints as $complaint): ?>
+        <option value="<?= htmlspecialchars($complaint['complaint_name']); ?>">
+            <?= htmlspecialchars($complaint['complaint_name']); ?>
+        </option>
+    <?php endforeach; ?>
+</select>
+
 
     <label for="cert_file">Upload Certificate:</label>
     <input type="file" name="cert_file" id="cert_file" class="form-control mb-2" required accept=".pdf, .jpg, .jpeg, .png">

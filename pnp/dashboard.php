@@ -81,12 +81,16 @@ function fetchDashboardData($pdo, $year, $from_date, $to_date) {
         $stmtRejected->execute($paramsRejected);
         $rejected = $stmtRejected->fetchColumn();
 
+  $stmtResidents = $pdo->prepare("SELECT COUNT(*) AS total_residents FROM tbl_users WHERE accountType = 'Resident'");
+        $stmtResidents->execute();
+        $totalResidents = $stmtResidents->fetchColumn();
+
         return [
             'totalComplaints' => $totalComplaints,
             'filedInCourt' => $filedInCourt,
             'settledInBarangay' => $settledInBarangay,
-            'rejected' => $rejected
-        ];
+            'rejected' => $rejected,
+            'totalResidents' => $totalResidents];
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);
         exit;
@@ -139,7 +143,7 @@ function fetchComplaintsByBarangay($pdo, $year, $from_date, $to_date) {
 $barangayData = fetchComplaintsByBarangay($pdo, $year, $from_date, $to_date);
 
 // Fetch gender data
-function fetchPurokData($pdo, $year, $from_date, $to_date) {
+function fetchGenderData($pdo, $year, $from_date, $to_date) {
     try {
         $whereClauses = [];
         $params = [];
@@ -164,11 +168,11 @@ function fetchPurokData($pdo, $year, $from_date, $to_date) {
         $whereSql = $whereClauses ? 'AND ' . implode(' AND ', $whereClauses) : '';
 
         $stmt = $pdo->prepare("
-            SELECT u.purok, COUNT(u.user_id) AS purok_count
+            SELECT u.gender, COUNT(u.user_id) AS gender_count
             FROM tbl_complaints c
             JOIN tbl_users u ON c.user_id = u.user_id
             WHERE 1=1 $whereSql
-            GROUP BY u.purok
+            GROUP BY u.gender
         ");
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -179,7 +183,7 @@ function fetchPurokData($pdo, $year, $from_date, $to_date) {
 }
 
 // Usage
-$purokData = fetchPurokData($pdo, $year, $from_date, $to_date);
+$genderData = fetchGenderData($pdo, $year, $from_date, $to_date);
 
 // Fetch complaint categories data
 function fetchComplaintCategoriesData($pdo, $year, $from_date, $to_date) {
@@ -319,7 +323,6 @@ $categoryData = fetchComplaintCategoriesData($pdo, $year, $from_date, $to_date);
 
 .navbar-brand{
 color: whitesmoke;
-margin-left: 5rem;
 }
         
 
@@ -339,14 +342,14 @@ include '../includes/edit-profile.php';
 <center><div class="content">
      <center> <h1>Dashboard</h1></center>
      <div class="row">
-   <div class="col-md-3">
+   <div class="col-md-4">
       <div class="card">
          <i class="fas fa-file-alt" style="font-size:50px;color: green;"></i>
          <h2><?php echo htmlspecialchars($data['totalComplaints']); ?></h2>
          <p>Total Complaints</p>
       </div>
    </div>
-   <div class="col-md-3">
+   <div class="col-md-4">
       <div class="card">
          <i class="fas fa-gavel" style="font-size:50px; color: cyan;"></i>
          
@@ -354,23 +357,22 @@ include '../includes/edit-profile.php';
          <p>Filed in the Court</p>
       </div>
    </div>
-   <div class="col-md-3">
+   <div class="col-md-4">
       <div class="card">
          <i class="fas fa-check-circle" style="font-size:50px;color: blue;"></i>
          <h2><?php echo htmlspecialchars($data['settledInBarangay']); ?></h2>
          <p>Settled in Barangay</p>
       </div>
    </div>
-   <div class="col-md-3">
-   <div class="card">
-    <i class="fas fa-times-circle" style="font-size:50px; color: red;"></i>
-    <h2><?php echo htmlspecialchars($data['rejected']); ?></h2>
-    <p>Rejected</p>
-</div>
+   
 
+ 
    </div>
-</div>
-
+   
+   
+   
+   
+   
 
      <div class="container mt-4">
     <!-- Filter Form -->
@@ -418,14 +420,14 @@ include '../includes/edit-profile.php';
         <div class="col-md-6 mb-4">
             <div class="card">
                 <div class="card-body">
-                    <h2>Purok</h2>
+                    <h2>Gender</h2>
                     <div class="chart-container d-flex justify-content-center align-items-center" style="height: 300px;">
                         
-                        <canvas id="purokChart"></canvas>
+<canvas id="genderChart"></canvas>
                     </div>
                     <div class="analytics-info mt-3">
-                        <h4>Highest Purok Count:</h4>
-                        <p class="" id="purokMaxInfo"></p>
+                        <h4>Highest Gender Count:</h4>
+<p class="" id="genderMaxInfo"></p>
                     </div>
                 </div>
             </div>
@@ -553,25 +555,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
+// Gender Chart
+var ctxGender = document.getElementById('genderChart').getContext('2d');
+var genderDataValues = <?php echo json_encode(array_column($genderData, 'gender_count')); ?>;
+var genderDataLabels = <?php echo json_encode(array_column($genderData, 'gender')); ?>;
+var totalGenderCount = genderDataValues.reduce((a, b) => a + b, 0); // Total count of gender data
 
-
-    // Gender Chart
-    var ctxPurok = document.getElementById('purokChart').getContext('2d');
-var purokDataValues = <?php echo json_encode(array_column($purokData, 'purok_count')); ?>;
-var purokDataLabels = <?php echo json_encode(array_column($purokData, 'purok')); ?>;
-var totalPurokCount = purokDataValues.reduce((a, b) => a + b, 0); // Total count of purok data
-
-var purokChart = new Chart(ctxPurok, {
+var genderChart = new Chart(ctxGender, {
     type: 'bar',
     data: {
-        labels: purokDataLabels.map((label, index) => `${label} (${((purokDataValues[index] / totalPurokCount) * 100).toFixed(1)}%)`), // Add percentages to labels
+        labels: genderDataLabels.map((label, index) => `${label} (${((genderDataValues[index] / totalGenderCount) * 100).toFixed(1)}%)`),
         datasets: [{
-            data: purokDataValues,
-            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+            data: genderDataValues,
+            backgroundColor: ['#FF6384', '#36A2EB'],
             borderColor: '#fff',
             borderWidth: 1,
-            barBorderRadius:10
-
+            barBorderRadius: 10
         }]
     },
     options: {
@@ -579,17 +578,19 @@ var purokChart = new Chart(ctxPurok, {
         cutout: '50%',
         plugins: {
             legend: {
-                display: false // Hide the legend if needed
+                display: false
             }
         }
     }
 });
 
-// Find the highest value in purok data
-var maxPurokValue = Math.max(...purokDataValues);
-var maxPurokIndex = purokDataValues.indexOf(maxPurokValue);
-document.getElementById('purokMaxInfo').textContent = `${purokDataLabels[maxPurokIndex]}: ${((maxPurokValue / totalPurokCount) * 100).toFixed(1)}%`;
+// Display highest gender percentage
+var maxGenderValue = Math.max(...genderDataValues);
+var maxGenderIndex = genderDataValues.indexOf(maxGenderValue);
+document.getElementById('genderMaxInfo').textContent = `${genderDataLabels[maxGenderIndex]}: ${((maxGenderValue / totalGenderCount) * 100).toFixed(1)}%`;
 
+
+   
    // Most Complaints Report (Category Chart)
 var ctxCategory = document.getElementById('categoryChart').getContext('2d');
 var categoryDataValues = <?php echo json_encode(array_column($categoryData, 'category_count')); ?>;
