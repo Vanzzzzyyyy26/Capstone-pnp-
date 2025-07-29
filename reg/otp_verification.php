@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $user_data['security_question'], $hashed_answer, 
                     $user_data['civil_status'], $user_data['nationality'], 
                     $user_data['age'], $user_data['birth_date'], $user_data['gender'], 
-                    $user_data['place_of_birth'], $user_data['purok'], $user_data['educational_background'],$user_data['selfie_path'],$user_data['pic_data'],
+                    $user_data['place_of_birth'], $user_data['purok'], $user_data['educational_background'],$user_data['pic_data'],$user_data['selfie_path'],
                 ]);
 
                 // Commit transaction

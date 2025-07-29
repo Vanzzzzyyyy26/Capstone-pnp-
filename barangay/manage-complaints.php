@@ -501,9 +501,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             document.getElementById('civilStatus').textContent = complaint.civil_status;
             document.getElementById('nationality').textContent = complaint.nationality;
-            document.getElementById('image').setAttribute('src', complaint.selfie_path || '');
+         
             document.getElementById('pic').setAttribute('src', complaint.pic_data || '');
-
+               document.getElementById('image').setAttribute('src', complaint.selfie_path || '');
             
             document.getElementById('complaintIdForForm').value = complaint.complaints_id;
 

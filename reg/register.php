@@ -242,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 <!-- Barangay Select -->
                 <div class="col-md-6 mb-3">
-                    <label for="barangay" class="form-label">Address: tang ina mo princesss</label>
+                    <label for="barangay" class="form-label">Address: </label>
                     <input type="text" id="barangay" name="barangay" class="form-control" required>
 
                 </div>
@@ -331,7 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <!-- Selfie Upload -->
         <div class="col-md-6 mb-3">
-            <label for="selfie_path" class="form-label">Upload Selfie:</label>
+            <label for="selfie_path" class="form-label">Upload ID:</label>
             <input type="file" id="selfie_path" name="selfie_path" class="form-control" accept="image/*" >
         </div>
     </div>
