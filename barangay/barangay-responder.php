@@ -35,7 +35,6 @@ $complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Determine current page
 $page = !isset($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] <= 0 ? 1 : $_GET['page'];
 
-// Calculate the SQL LIMIT starting number for the results on the displaying page
 $start_from = ($page - 1) * $results_per_page;
 
 function displayComplaints($pdo, $start_from, $results_per_page) {
@@ -83,7 +82,7 @@ function displayComplaints($pdo, $start_from, $results_per_page) {
         if ($stmt->rowCount() == 0) {
             echo "<tr><td colspan='4'>No complaints found.</td></tr>";
         } else {
-            $rowNumber = $start_from + 1; // Initialize row number
+            $rowNumber = $start_from + 1; 
 
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $complaint_id = htmlspecialchars($row['complaints_id']);
@@ -162,11 +161,11 @@ $complaint_kailan = htmlspecialchars($row['kailan_date']) . ' ' . htmlspecialcha
                                 data-bs-toggle='modal' data-bs-target='#complaintModal'>
                             View Details
                         </button>
-                      </td>"; // Align button to center
+                      </td>"; 
             echo "</tr>";
             
 
-                $rowNumber++; // Increment row number
+                $rowNumber++;
             }
         }
     } catch (PDOException $e) {
@@ -255,28 +254,173 @@ $total_pages = ceil($total_results / $results_per_page);
 <style>
 
 
+.navbar {
+    background-color: #082759 !important;
+    padding: 10px 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.navbar-brand {
+    color: whitesmoke !important;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+.navbar-brand:hover {
+    color: #ffc107 !important;
+}
+
+/* ======== Logo Styling ======== */
+.logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.logo-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* ======== Sidebar Toggler (Hamburger) ======== */
 .sidebar-toggler {
     display: flex;
     align-items: center;
-    padding: 10px;
-    background-color: transparent; /* Changed from #082759 to transparent */
+    background-color: transparent;
     border: none;
     cursor: pointer;
     color: white;
-    text-align: left;
-    width: auto; /* Adjust width automatically */
+    padding: 8px;
+    margin-right: 10px;
 }
-.sidebar{
-  background-color: #082759;
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
 }
-.navbar{
-  background-color: #082759;
+.hamburger .line {
+    width: 22px;
+    height: 2.5px;
+    background: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
 
+/* ======== Search Input Styling ======== */
+.search-input {
+    width: 220px;
+    padding: 6px 10px;
+    border-radius: 5px;
+}
+.btn-outline-light {
+    border-color: white;
+    color: white;
+}
+.btn-outline-light:hover {
+    background-color: white;
+    color: #082759;
 }
 
-.navbar-brand{
-color: whitesmoke;
-margin-left: 5rem;
+/* ======== Notification Badge ======== */
+#notificationButton {
+    position: relative;
+}
+#notificationCount {
+    font-size: 10px;
+    padding: 2px 5px;
+}
+
+/* ======== Responsive Adjustments ======== */
+
+body {
+    background-color: #ffffff;
+}
+
+
+
+/* === Sidebar Base === */
+.sidebar {
+    background-color: #082759;
+    width: 250px;
+    min-height: 100vh;
+    padding-top: 20px;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    z-index: 1050;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Sidebar Links */
+.sidebar .nav-link {
+    color: white;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+}
+.sidebar .nav-link:hover {
+    background-color: #0b3a80;
+    color: #ffc107;
+    border-radius: 5px;
+}
+.sidebar .nav-link i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+/* Profile Image */
+.sidebar .profile {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 3px solid #fff;
+}
+.white-text {
+    color: #fff;
+    font-size: 14px;
+    margin: 0;
+}
+
+
+.content {
+    margin-left: 250px; /* Same as initial width of the sidebar */
+    transition: margin-left 0.3s ease;
+    padding: 60px; /* Adjust padding as needed */
+    width: 80%; /* Calculate remaining width */
+}
+/* === Overlay for Mobile === */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1049;
+}
+
+/* === Responsive Sidebar === */
+@media (max-width: 992px) {
+    .sidebar {
+        left: -250px; /* Hide sidebar */
+        position: fixed;
+        top: 60px;
+        height: calc(100% - 60px);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar.active {
+        left: 0; /* Show when active */
+    }
+
+    /* Show overlay when sidebar is open */
+    .overlay.active {
+        display: block;
+    }
 }
 
 
@@ -292,10 +436,6 @@ margin-left: 5rem;
     margin-bottom: 5px;
 }
 
-span {
-    display: block;
-    margin-bottom: 10px;
-}
 
 body{
     background-color: #ffffff;
@@ -312,6 +452,8 @@ include '../includes/sidebar.php';
 include '../includes/edit-profile.php';
 ?>
     <!-- Page Content -->
+     <div class="d-flex justify-content-center align-items-center" style="min-height:100vh;">
+
     <div class="content">
     <div class="container">
         <h2 class="mt-3 mb-4">Complaints Status</h2>
@@ -366,7 +508,36 @@ function handleStatusChange(status) {
 </script>
 
 <!-- Add Walk-In Button -->
+<div class="card shadow-sm border-0 certificate-card">
+    <div class="card-header bg-primary text-white text-center py-2">
+        <h6 class="mb-0">Add Certificate of File Action</h6>
+    </div>
 
+    <div class="card-body">
+        <form action="upload.php" method="post" enctype="multipart/form-data" class="certificate-form">
+
+            <!-- Select complainant -->
+            <label for="complaint_name" class="form-label small-text">Select complainant:</label>
+            <select name="complaint_name" id="complaint_name" class="form-select form-select-sm mb-3" required>
+                <option value="">-- Select complainant --</option>
+                <?php foreach ($complaints as $complaint): ?>
+                    <option value="<?= htmlspecialchars($complaint['complaint_name']); ?>">
+                        <?= htmlspecialchars($complaint['complaint_name']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <!-- Upload certificate -->
+            <label for="cert_file" class="form-label small-text">Upload Certificate:</label>
+            <input type="file" name="cert_file" id="cert_file" class="form-control form-control-sm mb-3" required accept=".pdf, .jpg, .jpeg, .png">
+
+            <!-- Submit button -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-success btn-sm px-4">Upload</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 
 <div style="width: 100%; text-align: center;">

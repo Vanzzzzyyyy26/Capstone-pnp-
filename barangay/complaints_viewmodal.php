@@ -122,21 +122,3 @@
 
 <!-- Complaint Certificate Upload Form -->
 
-<form action="upload.php" method="post" enctype="multipart/form-data" class="mt-3">
-    <h5>  Add  certificate  of  file  action</h5>
-    <label for="complaint_name">Select complainant:</label>
-<select name="complaint_name" id="complaint_name" class="form-select mb-2" required>
-    <option value="">-- Select complainant --</option>
-    <?php foreach ($complaints as $complaint): ?>
-        <option value="<?= htmlspecialchars($complaint['complaint_name']); ?>">
-            <?= htmlspecialchars($complaint['complaint_name']); ?>
-        </option>
-    <?php endforeach; ?>
-</select>
-
-
-    <label for="cert_file">Upload Certificate:</label>
-    <input type="file" name="cert_file" id="cert_file" class="form-control mb-2" required accept=".pdf, .jpg, .jpeg, .png">
-
-    <button type="submit" class="btn btn-success">Upload</button>
-</form>

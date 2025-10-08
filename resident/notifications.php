@@ -3,10 +3,8 @@ session_start();
 include '../connection/dbconn.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get the logged-in user's full name
     $userFullName = $_SESSION['first_name'] . ' ' . $_SESSION['middle_name'] . ' ' . $_SESSION['last_name'];
 
-    // Fetch unread notifications for the logged-in user
     try {
         $stmt = $pdo->prepare("
             SELECT c.complaints_id, c.status, h.hearing_type, h.hearing_date, h.hearing_time, h.hearing_status

@@ -11,32 +11,8 @@ $extensionName = $_SESSION['extension_name'] ?? '';
 $cp_number = $_SESSION['cp_number'] ?? '';
 $barangays_id = $_SESSION['barangays_id'] ?? '';
 $barangay_name = $_SESSION['barangay_name'] ?? '';
-
 $pic_data = $_SESSION['pic_data'] ?? '';
 
-// Ensure barangay_name is set in the session
-if (!$barangay_name) {
-    // Redirect to login page or handle unauthorized access
-    header("Location: login.php");
-    exit();
-}
-
-// Fetch barangay_name based on the session or other criteria
-$barangay_name = $_SESSION['barangay_name'] ?? '';
-
-// Query to fetch barangay name from the database
-$stmt = $pdo->prepare("SELECT barangay_name FROM tbl_users_barangay WHERE barangay_name = ?");
-$stmt->execute([$barangay_name]);
-$barangay = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if ($barangay) {
-    // Barangay name exists, you can use it here
-    $barangay_name = $barangay['barangay_name'];
-} else {
-    $_SESSION['error'] = "Barangay not found.";
-    header("Location: login.php");
-    exit();
-}
 
 // Handle form submission for adding new official
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
@@ -50,35 +26,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         $uploadOk = 1;
         $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-        // Check if image file is an actual image or fake image
+        // Check if image file is valid
         $check = getimagesize($_FILES["image"]["tmp_name"]);
         if ($check === false) {
             $_SESSION['error'] = "File is not an image.";
             $uploadOk = 0;
         }
 
-        // Check file size (adjust as necessary)
+        // Check file size
         if ($_FILES["image"]["size"] > 50000000) {
             $_SESSION['error'] = "Sorry, your file is too large.";
             $uploadOk = 0;
         }
 
-        // Allow certain file formats (adjust as necessary)
+        // Allow only certain file formats
         $allowed_formats = ["jpg", "jpeg", "png", "gif"];
         if (!in_array($imageFileType, $allowed_formats)) {
             $_SESSION['error'] = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
             $uploadOk = 0;
         }
 
-        // Check if $uploadOk is set to 0 by an error
         if ($uploadOk == 0) {
             $_SESSION['error'] = "Sorry, your file was not uploaded.";
         } else {
             if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                // Image uploaded successfully, now insert data into database
+                // Image uploaded successfully, insert into database
                 $image_path = $target_file;
 
-                // Insert into database with barangays_id as foreign key
                 $stmt = $pdo->prepare("INSERT INTO tbl_brg_official (name, position, image, barangays_id) VALUES (?, ?, ?, ?)");
                 if ($stmt->execute([$name, $position, $image_path, $barangays_id])) {
                     $_SESSION['success'] = "Official added successfully.";
@@ -90,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             }
         }
 
-        // Redirect back to barangay-official.php after processing
+        // Redirect after adding official
         header("Location: barangay-official.php");
         exit();
     } elseif ($_POST['action'] == 'edit_official') {
@@ -105,11 +79,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             $target_file = $target_dir . basename($_FILES["edit_image"]["name"]);
             $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-            // Check if file is an actual image
+            // Check if the uploaded file is an image
             $check = getimagesize($_FILES["edit_image"]["tmp_name"]);
             if ($check !== false) {
                 if (move_uploaded_file($_FILES["edit_image"]["tmp_name"], $target_file)) {
-                    $image_path = $target_file; // Update image path only if upload is successful
+                    $image_path = $target_file;
                 } else {
                     $_SESSION['error'] = "Sorry, there was an error uploading your file.";
                 }
@@ -126,17 +100,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             $_SESSION['error'] = "Failed to update official. Error: " . implode(", ", $stmt->errorInfo());
         }
 
-        // Redirect back to barangay-official.php after processing
         header("Location: barangay-official.php");
         exit();
     }
 }
 
-// Soft delete action
+// Soft delete official
 if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['official_id'])) {
     $official_id = $_GET['official_id'];
 
-    // Ensure the official belongs to the logged-in barangay
     $stmt = $pdo->prepare("UPDATE tbl_brg_official SET is_deleted = 1 WHERE official_id = ? AND barangays_id = ?");
     if ($stmt->execute([$official_id, $barangays_id])) {
         $_SESSION['success'] = "Official deleted successfully.";
@@ -144,21 +116,14 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['offici
         $_SESSION['error'] = "Failed to delete official. Error: " . implode(", ", $stmt->errorInfo());
     }
 
-    // Redirect back to barangay-official.php after deletion
     header("Location: barangay-official.php");
     exit();
 }
 
-// Fetch officials only from the logged-in barangay (excluding deleted officials)
+// Fetch officials only from the logged-in barangay (exclude deleted)
 $stmt = $pdo->prepare("SELECT * FROM tbl_brg_official WHERE barangays_id = ? AND is_deleted = 0");
 $stmt->execute([$barangays_id]);
-
 $officials = $stmt->fetchAll();
-
-// Print fetched officials to verify data (optional)
-// echo "<pre>";
-// print_r($officials);
-// echo "</pre>";
 ?>
 
 <!DOCTYPE html>
@@ -187,30 +152,158 @@ $officials = $stmt->fetchAll();
     border-top-color: #343a40; /* Match the background color */
 }
 
+.navbar {
+    background-color: #082759 !important;
+    padding: 10px 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.navbar-brand {
+    color: whitesmoke !important;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+.navbar-brand:hover {
+    color: #ffc107 !important;
+}
 
+/* ======== Logo Styling ======== */
+.logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.logo-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* ======== Sidebar Toggler (Hamburger) ======== */
 .sidebar-toggler {
     display: flex;
     align-items: center;
-    padding: 10px;
-    background-color: transparent; /* Changed from #082759 to transparent */
+    background-color: transparent;
     border: none;
     cursor: pointer;
     color: white;
-    text-align: left;
-    width: auto; /* Adjust width automatically */
+    padding: 8px;
+    margin-right: 10px;
 }
-.sidebar{
-  background-color: #082759;
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
 }
-.navbar{
-  background-color: #082759;
+.hamburger .line {
+    width: 22px;
+    height: 2.5px;
+    background: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
 
+/* ======== Search Input Styling ======== */
+.search-input {
+    width: 220px;
+    padding: 6px 10px;
+    border-radius: 5px;
+}
+.btn-outline-light {
+    border-color: white;
+    color: white;
+}
+.btn-outline-light:hover {
+    background-color: white;
+    color: #082759;
 }
 
-.navbar-brand{
-color: whitesmoke;
-margin-left: 5rem;
+/* ======== Notification Badge ======== */
+#notificationButton {
+    position: relative;
 }
+#notificationCount {
+    font-size: 10px;
+    padding: 2px 5px;
+}
+
+/* ======== Responsive Adjustments ======== */
+
+body {
+    background-color: #ffffff;
+}
+
+
+
+/* === Sidebar Base === */
+.sidebar {
+    background-color: #082759;
+    width: 250px;
+    min-height: 100vh;
+    padding-top: 20px;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    z-index: 1050;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Sidebar Links */
+.sidebar .nav-link {
+    color: white;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+}
+.sidebar .nav-link:hover {
+    background-color: #0b3a80;
+    color: #ffc107;
+    border-radius: 5px;
+}
+.sidebar .nav-link i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+/* Profile Image */
+.sidebar .profile {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 3px solid #fff;
+}
+.white-text {
+    color: #fff;
+    font-size: 14px;
+    margin: 0;
+}
+
+
+.content {
+    margin-left: 250px; /* Same as initial width of the sidebar */
+    transition: margin-left 0.3s ease;
+    padding: 40px; /* Adjust padding as needed */
+    width: 80%; /* Calculate remaining width */
+}
+/* === Overlay for Mobile === */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1049;
+}
+
+/* === Responsive Sidebar === */
+
+
 .table thead th {
             background-color: #082759;
 
@@ -229,6 +322,7 @@ include '../includes/navbar.php';
 include '../includes/sidebar.php';
 include '../includes/edit-profile.php';
 ?>
+<div class="d-flex justify-content-center align-items-center" style="min-height:100vh;">
 
 <div class="content">
     <div class="container mt-4">

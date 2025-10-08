@@ -164,6 +164,8 @@ $stmt->execute([$complaint_name, $complaints, $date_filed, $category_id, $barang
 }
 
 .sidebar-toggler {
+      position: fixed;
+
     display: flex;
     align-items: center;
     padding: 10px;
@@ -173,6 +175,17 @@ $stmt->execute([$complaint_name, $complaints, $date_filed, $category_id, $barang
     color: white;
     text-align: left;
     width: auto; /* Adjust width automatically */
+}
+
+
+.sidebar {
+  position: fixed;
+  top: 4rem;       /* same as your margin-top */
+  left: 0;
+  width: 250px;    /* adjust as needed */
+  height:100%; /* full height minus the top offset */
+  overflow-y: auto; /* only scroll sidebar content if it overflows */
+  background: #082759; /* optional: give it a background */
 }
 
 .navbar{
@@ -188,21 +201,23 @@ color: whitesmoke;
     width: 80px; /* Width when collapsed */
 }
 .content {
-    margin-left: 250px; /* Same as initial width of the sidebar */
-    transition: margin-left 0.3s ease;
-    padding: 20px; /* Adjust padding as needed */
-    width: 80%; /* Calculate remaining width */
+  margin-top: 70px; /* adjust depending on your navbar height */
 }
 .content.expanded {
     margin-left: 75px; /* Adjust content margin when sidebar expands */
 }
 
 
+.nav-link i {
+    font-size: 3em;
+    margin-right: 0.5em;
+}
 
 label {
     font-weight: bold;
     margin-bottom: 5px;
 }
+
 
     </style>
 
@@ -215,8 +230,9 @@ include '../includes/edit-profile.php';
 
     <!-- Page Content -->
   
+       <div class="d-flex justify-content-center align-items-center" style="min-height:100vh;">
 
-   
+  
    <div class="content">
     
   <div class="card">
@@ -358,15 +374,15 @@ include '../includes/edit-profile.php';
                         <?php
                         // Array of barangays of echague
                         $barangays = [
-                            "Angoluan", "Annafunan", "Arabiat", "Aromin", "Babaran", "Bacradal", "Benguet", "Buneg", "Busilelao", "Cabugao (Poblacion)",
+                            "Angoluan", "Annafunan", "Arabiat", "Aromin", "Babaran", "Bacradal", "Benguet", "Buneg", "Busilelao", "Cabugao ",
                             "Caniguing", "Carulay", "Castillo", "Dammang East", "Dammang West", "Diasan", "Dicaraoyan", "Dugayong", "Fugu", "Garit Norte",
                             "Garit Sur", "Gucab", "Gumbauan", "Ipil", "Libertad", "Mabbayad", "Mabuhay", "Madadamian", "Magleticia", "Malibago", "Maligaya",
                             "Malitao", "Narra", "Nilumisu", "Pag-asa", "Pangal Norte", "Pangal Sur", "Rumang-ay", "Salay", "Salvacion", "San Antonio Ugad",
-                            "San Antonio Minit", "San Carlos", "San Fabian", "San Felipe", "San Juan", "San Manuel (formerly Atelan)", "San Miguel", "San Salvador",
-                            "Santa Ana", "Santa Cruz", "Santa Maria", "Santa Monica", "Santo Domingo", "Silauan Sur (Poblacion)", "Silauan Norte (Poblacion)",
-                            "Sinabbaran", "Soyung (Poblacion)", "Taggappan (Poblacion)", "Villa Agullana", "Villa Concepcion", "Villa Cruz", "Villa Fabia",
+                            "San Antonio Minit", "San Carlos", "San Fabian", "San Felipe", "San Juan", "San Manuel", "San Miguel", "San Salvador",
+                            "Santa Ana", "Santa Cruz", "Santa Maria", "Santa Monica", "Santo Domingo", "Silauan Sur ", "Silauan Norte ",
+                            "Sinabbaran", "Soyung ", "Taggappan ", "Villa Agullana", "Villa Concepcion", "Villa Cruz", "Villa Fabia",
                             "Villa Gomez", "Villa Nuesa", "Villa Padian", "Villa Pereda", "Villa Quirino", "Villa Remedios", "Villa Serafica", "Villa Tanza",
-                            "Villa Verde", "Villa Vicenta", "Villa Ysmael (formerly T. Belen)"
+                            "Villa Verde", "Villa Vicenta", "Villa Ysmael "
                         ];
 
                         // Display barangays as options
@@ -442,9 +458,8 @@ include '../includes/edit-profile.php';
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.2/dist/sweetalert2.all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
 

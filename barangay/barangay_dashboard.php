@@ -3,42 +3,45 @@ session_start();
 include '../connection/dbconn.php';
 include '../includes/bypass.php';
 
-// Fetch user information from session
-$firstName = $_SESSION['first_name'] ?? '';
-$middleName = $_SESSION['middle_name'] ?? '';
-$lastName = $_SESSION['last_name'] ?? '';
-$extensionName = $_SESSION['extension_name'] ?? '';
-$cp_number = $_SESSION['cp_number'] ?? '';
-$barangay_name = $_SESSION['barangay_name'] ?? '';
-$barangay_saan = $_SESSION['barangay_saan'] ?? '';
-$pic_data = $_SESSION['pic_data'] ?? '';
+// Fetch user info from session
+$firstName      = $_SESSION['first_name'] ?? '';
+$middleName     = $_SESSION['middle_name'] ?? '';
+$lastName       = $_SESSION['last_name'] ?? '';
+$extensionName  = $_SESSION['extension_name'] ?? '';
+$cp_number      = $_SESSION['cp_number'] ?? '';
+$barangay_name  = $_SESSION['barangay_name'] ?? '';
+$pic_data       = $_SESSION['pic_data'] ?? '';
+
+// If barangay_name is not set but barangays_id exists, fetch it
+if (empty($barangay_name) && isset($_SESSION['barangays_id'])) {
+    $stmt = $pdo->prepare("SELECT barangay_name FROM tbl_users_barangay WHERE barangays_id = ?");
+    $stmt->execute([$_SESSION['barangays_id']]);
+    $barangay_name = $_SESSION['barangay_name'] = $stmt->fetchColumn();
+}
 
 // Get filters from GET request
-$from_date = isset($_GET['from_date']) ? $_GET['from_date'] : '';
-$to_date = isset($_GET['to_date']) ? $_GET['to_date'] : '';
+$from_date = $_GET['from_date'] ?? '';
+$to_date   = $_GET['to_date'] ?? '';
 
-// Function to fetch dashboard data
+// ========== FUNCTION: FETCH DASHBOARD DATA ==========
 function fetchDashboardData($pdo, $from_date, $to_date, $barangay_name) {
     try {
-        $whereClauses = ["c.barangay_saan = ?"];
+        $where = ["c.barangay_saan = ?"];
         $params = [$barangay_name];
 
-        // Add date range filter
         if ($from_date && $to_date) {
-            $whereClauses[] = "c.date_filed BETWEEN ? AND ?";
+            $where[] = "c.date_filed BETWEEN ? AND ?";
             $params[] = $from_date;
             $params[] = $to_date;
         } elseif ($from_date) {
-            $whereClauses[] = "c.date_filed >= ?";
+            $where[] = "c.date_filed >= ?";
             $params[] = $from_date;
         } elseif ($to_date) {
-            $whereClauses[] = "c.date_filed <= ?";
+            $where[] = "c.date_filed <= ?";
             $params[] = $to_date;
         }
 
-        $whereSql = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
-
-        $stmt = $pdo->prepare("
+        $sql = "
             SELECT 
                 SUM(CASE WHEN c.status = 'Rejected' THEN 1 ELSE 0 END) AS rejected,
                 SUM(CASE WHEN c.status = 'settled_in_barangay' THEN 1 ELSE 0 END) AS settled_in_barangay,
@@ -46,138 +49,123 @@ function fetchDashboardData($pdo, $from_date, $to_date, $barangay_name) {
                 SUM(CASE WHEN c.status = 'inprogress' THEN 1 ELSE 0 END) AS inprogress,
                 SUM(CASE WHEN c.status = 'pnp' THEN 1 ELSE 0 END) AS pnp
             FROM tbl_complaints c
-            $whereSql
-        ");
+            WHERE " . implode(" AND ", $where);
+
+        $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        echo json_encode(['error' => $e->getMessage()]);
-        exit;
+        die("Dashboard Error: " . $e->getMessage());
     }
 }
 
-// Call the function with the correct parameter order
 $data = fetchDashboardData($pdo, $from_date, $to_date, $barangay_name);
 
-// Fetch complaints by barangay data
+// ========== FUNCTION: FETCH COMPLAINTS BY BARANGAY ==========
 function fetchComplaintsByBarangay($pdo, $from_date, $to_date) {
     try {
-        $whereClauses = [];
+        $where = [];
         $params = [];
 
-        // Add date range filter
         if ($from_date && $to_date) {
-            $whereClauses[] = "c.date_filed BETWEEN ? AND ?";
+            $where[] = "c.date_filed BETWEEN ? AND ?";
             $params[] = $from_date;
             $params[] = $to_date;
         } elseif ($from_date) {
-            $whereClauses[] = "c.date_filed >= ?";
+            $where[] = "c.date_filed >= ?";
             $params[] = $from_date;
         } elseif ($to_date) {
-            $whereClauses[] = "c.date_filed <= ?";
+            $where[] = "c.date_filed <= ?";
             $params[] = $to_date;
         }
 
-        $whereSql = $whereClauses ? 'WHERE ' . implode(' AND ', $whereClauses) : '';
-
-        $stmt = $pdo->prepare("
+        $sql = "
             SELECT c.barangay_saan, COUNT(c.complaints_id) AS complaint_count
             FROM tbl_complaints c
-            $whereSql
-            GROUP BY c.barangay_saan
-        ");
+            " . ($where ? "WHERE " . implode(" AND ", $where) : "") . "
+            GROUP BY c.barangay_saan";
+
+        $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        echo json_encode(['error' => $e->getMessage()]);
-        exit;
+        die("Barangay Error: " . $e->getMessage());
     }
 }
 
-// Example usage
 $barangayData = fetchComplaintsByBarangay($pdo, $from_date, $to_date);
 
-// Fetch other data (gender, categories, etc.) following the same pattern
 
-// Function to fetch purok data
 function fetchPurokData($pdo, $from_date, $to_date, $barangay_name) {
     try {
-        $whereClauses = ["ub.barangay_name = ?"];
+        $where = ["ub.barangay_name = ?"];
         $params = [$barangay_name];
 
-        // Add date range filter
         if ($from_date && $to_date) {
-            $whereClauses[] = "c.date_filed BETWEEN ? AND ?";
+            $where[] = "c.date_filed BETWEEN ? AND ?";
             $params[] = $from_date;
             $params[] = $to_date;
         } elseif ($from_date) {
-            $whereClauses[] = "c.date_filed >= ?";
+            $where[] = "c.date_filed >= ?";
             $params[] = $from_date;
         } elseif ($to_date) {
-            $whereClauses[] = "c.date_filed <= ?";
+            $where[] = "c.date_filed <= ?";
             $params[] = $to_date;
         }
 
-        $whereSql = $whereClauses ? ' AND ' . implode(' AND ', $whereClauses) : '';
-
-        $stmt = $pdo->prepare("
+        $sql = "
             SELECT u.purok, COUNT(u.user_id) AS purok_count
             FROM tbl_complaints c
-            JOIN tbl_users u ON c.user_id = u.user_id
-            JOIN tbl_users_barangay ub ON c.barangays_id = ub.barangays_id
-            WHERE 1=1 $whereSql
-            GROUP BY u.purok
-        ");
+            INNER JOIN tbl_users u ON c.user_id = u.user_id
+            INNER JOIN tbl_users_barangay ub ON c.barangays_id = ub.barangays_id
+            WHERE " . implode(" AND ", $where) . "
+            GROUP BY u.purok";
+
+        $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        echo json_encode(['error' => $e->getMessage()]);
-        exit;
+        die("Purok Error: " . $e->getMessage());
     }
 }
 
-// Usage
 $purokData = fetchPurokData($pdo, $from_date, $to_date, $barangay_name);
 
-// Function to fetch complaint categories data
+// ========== FUNCTION: FETCH COMPLAINT CATEGORIES ==========
 function fetchComplaintCategoriesData($pdo, $from_date, $to_date, $barangay_name) {
     try {
-        $whereClauses = ["c.barangay_saan = ?"];
+        $where = ["c.barangay_saan = ?"];
         $params = [$barangay_name];
 
-        // Add date range filter
         if ($from_date && $to_date) {
-            $whereClauses[] = "c.date_filed BETWEEN ? AND ?";
+            $where[] = "c.date_filed BETWEEN ? AND ?";
             $params[] = $from_date;
             $params[] = $to_date;
         } elseif ($from_date) {
-            $whereClauses[] = "c.date_filed >= ?";
+            $where[] = "c.date_filed >= ?";
             $params[] = $from_date;
         } elseif ($to_date) {
-            $whereClauses[] = "c.date_filed <= ?";
+            $where[] = "c.date_filed <= ?";
             $params[] = $to_date;
         }
 
-        $whereSql = $whereClauses ? ' AND ' . implode(' AND ', $whereClauses) : '';
-
-        $stmt = $pdo->prepare("
+        $sql = "
             SELECT cc.complaints_category, COUNT(c.complaints_id) AS category_count
             FROM tbl_complaints c
-            JOIN tbl_complaintcategories cc ON c.category_id = cc.category_id
-            WHERE 1=1 $whereSql
-            GROUP BY cc.complaints_category
-        ");
+            INNER JOIN tbl_complaintcategories cc ON c.category_id = cc.category_id
+            WHERE " . implode(" AND ", $where) . "
+            GROUP BY cc.complaints_category";
+
+        $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        echo json_encode(['error' => $e->getMessage()]);
-        exit;
+        die("Category Error: " . $e->getMessage());
     }
 }
 
 $categoryData = fetchComplaintCategoriesData($pdo, $from_date, $to_date, $barangay_name);
 ?>
-
 
 
 <!DOCTYPE html>
@@ -193,105 +181,223 @@ $categoryData = fetchComplaintCategoriesData($pdo, $from_date, $to_date, $barang
     <link rel="stylesheet" type="text/css" href="../styles/style.css">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .card {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            text-align: center;
-        }
-        .card h2 {
-            margin: 0;
-            font-size: 2em;
-            color: #333;
-        }
-        .card p {
-            margin: 10px 0 0;
-            font-size: 1.2em;
-            color: #666;
-        }
-        .card-container {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-        }
-        .small-card {
-            width: 300px;
-            height: 400px;
-            margin: 20px;
-        }
-
-        .card.smalls-card {
-            width: 600px; /* Increase width */
-            height: 400px; /* Increase height */
-            margin: 20px auto; /* Center the card */
-        }
-        .chart-container {
-            width: 100%;
-            height: 300px;
-            margin: 0 auto;
-        }
-        .pie-chart-container {
-            display: flex;
-            justify-content: space-around; /* Adjust space between cards */
-            flex-wrap: wrap;
-            margin: 20px 0; /* Add margin at the top and bottom */
-        }
-
-        .charts-container {
-            width: 100%;
-            height: 500px;
-            margin: 0 auto;
-        }
-
-
-
-        .popover-content {
-    background-color: whitesmoke; 
-  
-    padding: 10px; /* Add some padding */
-    border: 1px solid #495057; /* Optional: border for better visibility */
-    border-radius: 5px; /* Optional: rounded corners */
-    max-height: 300px; /* Ensure it doesn't grow too large */
-    overflow-y: auto; /* Add vertical scroll if needed */
+   <style>
+/* ======== Cards Styling ======== */
+.card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+}
+.card h2 {
+    margin: 0;
+    font-size: 2em;
+    color: #333;
+}
+.card p {
+    margin: 10px 0 0;
+    font-size: 1.2em;
+    color: #666;
+}
+.card-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+.small-card {
+    width: 300px;
+    height: 400px;
+    margin: 20px;
+}
+.card.smalls-card {
+    width: 600px;
+    height: 400px;
+    margin: 20px auto;
+}
+.chart-container {
+    width: 100%;
+    height: 300px;
+    margin: 0 auto;
+}
+.pie-chart-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+.charts-container {
+    width: 100%;
+    height: 500px;
+    margin: 0 auto;
 }
 
-/* Adjust the arrow for the popover to ensure it points correctly */
+/* ======== Popover Styling ======== */
+.popover-content {
+    background-color: whitesmoke;
+    padding: 10px;
+    border: 1px solid #495057;
+    border-radius: 5px;
+    max-height: 300px;
+    overflow-y: auto;
+}
 .popover .popover-arrow {
-    border-top-color: #343a40; /* Match the background color */
+    border-top-color: #343a40;
 }
 
+/* ======== Navbar Styling ======== */
+.navbar {
+    background-color: #082759 !important;
+    padding: 10px 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.navbar-brand {
+    color: whitesmoke !important;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+.navbar-brand:hover {
+    color: #ffc107 !important;
+}
+
+/* ======== Logo Styling ======== */
+.logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.logo-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* ======== Sidebar Toggler (Hamburger) ======== */
 .sidebar-toggler {
     display: flex;
     align-items: center;
-    padding: 10px;
-    background-color: transparent; /* Changed from #082759 to transparent */
+    background-color: transparent;
     border: none;
     cursor: pointer;
     color: white;
-    text-align: left;
-    width: auto; /* Adjust width automatically */
+    padding: 8px;
+    margin-right: 10px;
 }
-.sidebar{
-  background-color: #082759;
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
 }
-.navbar{
-  background-color: #082759;
+.hamburger .line {
+    width: 22px;
+    height: 2.5px;
+    background: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
 
+/* ======== Search Input Styling ======== */
+.search-input {
+    width: 220px;
+    padding: 6px 10px;
+    border-radius: 5px;
+}
+.btn-outline-light {
+    border-color: white;
+    color: white;
+}
+.btn-outline-light:hover {
+    background-color: white;
+    color: #082759;
 }
 
-.navbar-brand{
-color: whitesmoke;
-margin-left: 5rem;
+/* ======== Notification Badge ======== */
+#notificationButton {
+    position: relative;
 }
-   
+#notificationCount {
+    font-size: 10px;
+    padding: 2px 5px;
+}
 
-body{
+/* ======== Responsive Adjustments ======== */
+
+body {
     background-color: #ffffff;
 }
 
-    </style>
+
+
+/* === Sidebar Base === */
+.sidebar {
+    background-color: #082759;
+    width: 250px;
+    min-height: 100vh;
+    padding-top: 20px;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    z-index: 1050;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Sidebar Links */
+.sidebar .nav-link {
+    color: white;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+}
+.sidebar .nav-link:hover {
+    background-color: #0b3a80;
+    color: #ffc107;
+    border-radius: 5px;
+}
+.sidebar .nav-link i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+/* Profile Image */
+.sidebar .profile {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 3px solid #fff;
+}
+.white-text {
+    color: #fff;
+    font-size: 14px;
+    margin: 0;
+}
+
+
+.content {
+    margin-left: 250px; /* Same as initial width of the sidebar */
+    transition: margin-left 0.3s ease;
+    padding: 20px; /* Adjust padding as needed */
+    width: 80%; /* Calculate remaining width */
+}
+/* === Overlay for Mobile === */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1049;
+}
+
+
+</style>
+
 </head>
 <body>
 
@@ -301,6 +407,7 @@ include '../includes/navbar.php';
 include '../includes/sidebar.php';
 include '../includes/edit-profile.php';
 ?>
+<div class="d-flex justify-content-center align-items-center" style="min-height:100vh;">
 
 <div class="content">
     <div class="container">
@@ -533,11 +640,11 @@ document.getElementById('purokMaxInfo').textContent = `${purokDataLabels[maxPuro
             datasets: [{
                 data: topCategoryCounts,
                 backgroundColor: [
-                    '#4e73df', // Blue
+                    '#00c4b3ff', // Blue
                     '#1cc88a', // Green
                     '#36b9cc', // Light Blue
                     '#f6c23e', // Yellow
-                    '#e74a3b'  // Red
+                    '#060303ff'  // Red
                 ],
                 borderColor: '#fff',
                 borderWidth: 10,

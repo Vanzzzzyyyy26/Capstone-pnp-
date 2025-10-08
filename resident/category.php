@@ -4,9 +4,11 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="categoryModalLabel">Categories and Offenses</h5>
-        
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
       </div>
       <div class="modal-body">
+        
         <div class="category-list">
           <h6>Unlawful Use of Means of Publication and Unlawful Utterances (Art. 154)</h6>
           <ul>

@@ -4,57 +4,44 @@ include '../resident/notifications.php';
 
 
 
-
-$firstName = $_SESSION['first_name'];
-$middleName = $_SESSION['middle_name'];
-$lastName = $_SESSION['last_name'];
-$extensionName = isset($_SESSION['extension_name']) ? $_SESSION['extension_name'] : '';
-$cp_number = isset($_SESSION['cp_number']) ? $_SESSION['cp_number'] : '';
-$barangay = isset($_SESSION['barangays_id']) ? $_SESSION['barangays_id'] : '';
-$pic_data = isset($_SESSION['pic_data']) ? $_SESSION['pic_data'] : '';
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     try {
         // Collect complaint form data
-    
-             
-        $complaint_name = isset($_POST['complaints']) ? htmlspecialchars($_POST['complaint_name']) : '';
-        $complaints = isset($_POST['complaints']) ? htmlspecialchars($_POST['complaints']) : '';
-        $category = isset($_POST['category']) ? htmlspecialchars($_POST['category']) : '';
-        $complaints_person = isset($_POST['complaints_person']) ? htmlspecialchars($_POST['complaints_person']) : '';
+        $complaint_name = htmlspecialchars($_POST['complaint_name'] ?? '');
+        $complaints = htmlspecialchars($_POST['complaints'] ?? '');
+        $category = htmlspecialchars($_POST['category'] ?? '');
+        $complaints_person = htmlspecialchars($_POST['complaints_person'] ?? '');
         $date_filed = date('Y-m-d H:i:s');
-        $barangay_name = isset($_POST['barangay_name']) ? htmlspecialchars($_POST['barangay_name']) : '';
+        $barangay_name = htmlspecialchars($_POST['barangay_name'] ?? '');
 
-        // Collect data for "ano, saan, kailan, paano, bakit"
-        $ano = isset($_POST['ano']) ? htmlspecialchars($_POST['ano']) : '';
-        $barangay_saan = isset($_POST['barangay_saan']) ? htmlspecialchars($_POST['barangay_saan']) : '';
-        
-        // Get 'kailan' input and convert it to database-friendly datetime format
-        $kailan_date = isset($_POST['kailan_date']) ? htmlspecialchars($_POST['kailan_date']) : '';
-        $kailan_time = isset($_POST['kailan_time']) ? htmlspecialchars($_POST['kailan_time']) : '';
-        $kailan_time_12hr = date("h:i:s A", strtotime($kailan_time)); // Convert to 12-hour format with AM/PM
+        // "Ano, saan, kailan, paano, bakit"
+        $ano = htmlspecialchars($_POST['ano'] ?? '');
+        $barangay_saan = htmlspecialchars($_POST['barangay_saan'] ?? '');
+        $kailan_date = htmlspecialchars($_POST['kailan_date'] ?? '');
+        $kailan_time = htmlspecialchars($_POST['kailan_time'] ?? '');
+        $kailan_time_12hr = date("h:i:s A", strtotime($kailan_time));
+        $paano = htmlspecialchars($_POST['paano'] ?? '');
+        $bakit = htmlspecialchars($_POST['bakit'] ?? '');
+        $cp_number = htmlspecialchars($_POST['cp_number'] ?? '');
+        $purok = htmlspecialchars($_POST['purok'] ?? '');
+        $civil_status = htmlspecialchars($_POST['civil_status'] ?? '');
+        $age = htmlspecialchars($_POST['age'] ?? '');
+        $birth_date = htmlspecialchars($_POST['birth_date'] ?? '');
+        $gender = htmlspecialchars($_POST['gender'] ?? '');
+        $place_of_birth = htmlspecialchars($_POST['place_of_birth'] ?? '');
+        $nationality = htmlspecialchars($_POST['nationality'] ?? '');
+        $educational_background = htmlspecialchars($_POST['educational_background'] ?? '');
 
-        $paano = isset($_POST['paano']) ? htmlspecialchars($_POST['paano']) : '';
-        $bakit = isset($_POST['bakit']) ? htmlspecialchars($_POST['bakit']) : '';
-        $cp_number = isset($_POST['cp_number']) ? htmlspecialchars($_POST['cp_number']) : '';
-        $purok = isset($_POST['purok']) ? htmlspecialchars($_POST['purok']) : '';
-
-        $civil_status = isset($_POST['civil_status']) ? htmlspecialchars($_POST['civil_status']) : '';
-        $age = isset($_POST['age']) ? htmlspecialchars($_POST['age']) : '';
-        $birth_date = isset($_POST['birth_date']) ? htmlspecialchars($_POST['birth_date']) : '';
-        $gender = isset($_POST['gender']) ? htmlspecialchars($_POST['gender']) : '';
-        $place_of_birth = isset($_POST['place_of_birth']) ? htmlspecialchars($_POST['place_of_birth']) : '';
-        $purok = isset($_POST['purok']) ? htmlspecialchars($_POST['purok']) : '';
-        $nationality  = isset($_POST['nationality']) ? htmlspecialchars($_POST['nationality ']) : '';
-
-        $educational_background = isset($_POST['educational_background']) ? htmlspecialchars($_POST['educational_background']) : '';
         $pdo->beginTransaction();
 
-  // Insert into tbl_info to store additional user information
-  $stmt = $pdo->prepare("INSERT INTO tbl_users (civil_status, age, birth_date, gender, place_of_birth, educational_background,purok,nationality) VALUES (?,?, ?, ?, ?, ?, ?,?,?)");
-  $stmt->execute([$cp_number, $civil_status, $age, $birth_date, $gender, $place_of_birth, $educational_background,$purok,$nationality ]);
-  $user_id = $pdo->lastInsertId();
-        // Check category and insert new category if necessary
+        // ✅ Insert into tbl_users
+        $stmt = $pdo->prepare("INSERT INTO tbl_users 
+            (cp_number, civil_status, age, birth_date, gender, place_of_birth, educational_background, purok, nationality) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$cp_number, $civil_status, $age, $birth_date, $gender, $place_of_birth, $educational_background, $purok, $nationality]);
+        $user_id = $pdo->lastInsertId();
+
+        // ✅ Check category
         $stmt = $pdo->prepare("SELECT category_id FROM tbl_complaintcategories WHERE complaints_category = ?");
         $stmt->execute([$category]);
         $category_id = $stmt->fetchColumn();
@@ -65,43 +52,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $category_id = $pdo->lastInsertId();
         }
 
-        // Validate barangay
-        $barangay = $_POST['barangay_name']; // Get the Barangay name from the form submission
-
         $stmt = $pdo->prepare("SELECT barangays_id FROM tbl_users_barangay WHERE barangay_name = ?");
-    $stmt->execute([$barangay]);
-    $barangays_id = $stmt->fetchColumn(); // Fetch the Barangay ID
+        $stmt->execute([$barangay_name]);
+        $barangays_id = $stmt->fetchColumn();
 
-    // If Barangay doesn't exist, insert it into the database
-    if (!$barangays_id) {
-        $stmt = $pdo->prepare("INSERT INTO tbl_users_barangay (barangay_name) VALUES (?)");
-        $stmt->execute([$barangay]);
-        $barangays_id = $pdo->lastInsertId(); // Get the last inserted Barangay ID
-    }
-
-    // Continue with further processing using $barangays_id...
-
-
-        // Handle category
-        $other_category = isset($_POST['other-category']) ? htmlspecialchars($_POST['other-category']) : '';
-        if ($category === 'Other' && !empty($other_category)) {
-            $category = $other_category; 
+        if (!$barangays_id) {
+            $stmt = $pdo->prepare("INSERT INTO tbl_users_barangay (barangay_name) VALUES (?)");
+            $stmt->execute([$barangay_name]);
+            $barangays_id = $pdo->lastInsertId();
         }
 
-        // Set status and response values based on category
+        $other_category = htmlspecialchars($_POST['other-category'] ?? '');
+        if ($category === 'Other' && !empty($other_category)) {
+            $category = $other_category;
+        }
+
+        // ✅ Set status and responds
         $status = ($category === 'Other') ? 'barangay' : 'Approved';
         $responds = ($category === 'Other') ? 'pnp' : '';
 
-        // Insert into tbl_complaints
-       $user_id = $_SESSION['user_id']; // Retrieve user_id from session
-
-        $stmt = $pdo->prepare("INSERT INTO tbl_complaints (complaint_name, complaints, date_filed, category_id, barangays_id, complaints_person, status, responds, ano, barangay_saan, kailan_date, kailan_time, paano, bakit, user_id) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$stmt->execute([$complaint_name, $complaints, $date_filed, $category_id, $barangays_id, $complaints_person, $status, $responds, $ano, $barangay_saan, $kailan_date, $kailan_time_12hr, $paano, $bakit, $user_id]);
+        // ✅ Insert into tbl_complaints with correct $user_id
+        $stmt = $pdo->prepare("INSERT INTO tbl_complaints 
+            (complaint_name, complaints, date_filed, category_id, barangays_id, complaints_person, status, responds, 
+            ano, barangay_saan, kailan_date, kailan_time, paano, bakit, user_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $complaint_name, $complaints, $date_filed, $category_id, $barangays_id, $complaints_person,
+            $status, $responds, $ano, $barangay_saan, $kailan_date, $kailan_time_12hr,
+            $paano, $bakit, $user_id
+        ]);
 
         $complaint_id = $pdo->lastInsertId();
 
-        // Handle evidence upload
+        // ✅ Handle evidence upload
         if (isset($_FILES['evidence']) && $_FILES['evidence']['error'][0] == UPLOAD_ERR_OK) {
             foreach ($_FILES['evidence']['tmp_name'] as $key => $tmp_name) {
                 $evidence_filename = basename($_FILES['evidence']['name'][$key]);
@@ -120,41 +103,18 @@ $stmt->execute([$complaint_name, $complaints, $date_filed, $category_id, $barang
         $pdo->commit();
 
         $_SESSION['success'] = true;
-        header("Location: barangay-responder.php ");
+        header("Location: barangay-responder.php");
         exit();
-
 
     } catch (PDOException $e) {
         $pdo->rollBack();
-        echo "<div class='alert alert-danger' role='alert'>Error: " . $e->getMessage() . "</div>";
+        echo "<div class='alert alert-danger'>Database Error: " . $e->getMessage() . "</div>";
     } catch (Exception $e) {
-        echo "<div class='alert alert-danger' role='alert'>Error: " . $e->getMessage() . "</div>";
-    }
-}
-
-// Example retrieval of the 'kailan' field for displaying with AM/PM format
-if (isset($complaint_id)) {
-    $stmt = $pdo->prepare("SELECT kailan FROM tbl_complaints WHERE complaints_id = ?");
-    $stmt->execute([$complaint_id]);
-    $kailan_from_db = $stmt->fetchColumn();
-    
-    // Convert stored 'kailan' to AM/PM format for display
-
-    $kailan = isset($_POST['kailan']) ? htmlspecialchars($_POST['kailan']) : '';
-
-    // Convert the datetime-local format to MySQL datetime format
-    $kailan_db_format = date('Y-m-d H:i:s', strtotime($kailan));
-
-    // If you want to display AM/PM later, you can format it
-    $kailan_am_pm = date('F j, Y, g:i A', strtotime($kailan));
-
-    // Validate the conversion
-    if (!$kailan_db_format) {
-        throw new Exception("Invalid date format for 'kailan'.");
+        $pdo->rollBack();
+        echo "<div class='alert alert-danger'>Error: " . $e->getMessage() . "</div>";
     }
 }
 ?>
-
 
 
 <!DOCTYPE html>
@@ -302,10 +262,32 @@ h1{
       <input type="text" name="ano" id="ano" class="form-control" required>
     </div>
     
-    <div class="col-lg-6 col-md-12 form-group">
-      <label for="barangay_saan">Barangay:</label>
-      <textarea id="barangay_saan" name="barangay_saan" class="form-control" required></textarea>
+   <div class="col-lg-6 col-md-12 form-group">
+        <label for="barangay_saan"> <span class="text-danger">*</span> Location of incident:</label>
+    
 
+        <select id="barangay_saan" name="barangay_saan" class="form-select" required>
+            
+                        <?php
+                        // Array of barangays of echague
+                       $barangays = [
+                            "Angoluan", "Annafunan", "Arabiat", "Aromin", "Babaran", "Bacradal", "Benguet", "Buneg", "Busilelao", "Cabugao ",
+                            "Caniguing", "Carulay", "Castillo", "Dammang East", "Dammang West", "Diasan", "Dicaraoyan", "Dugayong", "Fugu", "Garit Norte",
+                            "Garit Sur", "Gucab", "Gumbauan", "Ipil", "Libertad", "Mabbayad", "Mabuhay", "Madadamian", "Magleticia", "Malibago", "Maligaya",
+                            "Malitao", "Narra", "Nilumisu", "Pag-asa", "Pangal Norte", "Pangal Sur", "Rumang-ay", "Salay", "Salvacion", "San Antonio Ugad",
+                            "San Antonio Minit", "San Carlos", "San Fabian", "San Felipe", "San Juan", "San Manuel", "San Miguel", "San Salvador",
+                            "Santa Ana", "Santa Cruz", "Santa Maria", "Santa Monica", "Santo Domingo", "Silauan Sur ", "Silauan Norte ",
+                            "Sinabbaran", "Soyung ", "Taggappan ", "Villa Agullana", "Villa Concepcion", "Villa Cruz", "Villa Fabia",
+                            "Villa Gomez", "Villa Nuesa", "Villa Padian", "Villa Pereda", "Villa Quirino", "Villa Remedios", "Villa Serafica", "Villa Tanza",
+                            "Villa Verde", "Villa Vicenta", "Villa Ysmael "
+                        ];
+
+                        // Display barangays as options
+                        foreach ($barangays as $barangay) {
+                            echo "<option value=\"$barangay\">$barangay</option>";
+                        }
+                        ?>
+                    </select>
     </div>
   </div>
 
@@ -601,5 +583,24 @@ $(document).ready(function() {
             
         </script>
     
+<script>
+// Auto-calculate age from birth date
+document.addEventListener('DOMContentLoaded', function() {
+  var birthDateInput = document.getElementById('birth_date');
+  var ageInput = document.getElementById('age');
+  if (birthDateInput && ageInput) {
+    birthDateInput.addEventListener('change', function() {
+      var birthDate = new Date(this.value);
+      var today = new Date();
+      var age = today.getFullYear() - birthDate.getFullYear();
+      var m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      ageInput.value = age > 0 ? age : '';
+    });
+  }
+});
+</script>
 </body>
 </html>

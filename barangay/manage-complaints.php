@@ -169,30 +169,157 @@ try {
     border-top-color: #343a40; /* Match the background color */
 }
 
+.navbar {
+    background-color: #082759 !important;
+    padding: 10px 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.navbar-brand {
+    color: whitesmoke !important;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+.navbar-brand:hover {
+    color: #ffc107 !important;
+}
 
+/* ======== Logo Styling ======== */
+.logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.logo-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* ======== Sidebar Toggler (Hamburger) ======== */
 .sidebar-toggler {
     display: flex;
     align-items: center;
-    padding: 10px;
-    background-color: transparent; /* Changed from #082759 to transparent */
+    background-color: transparent;
     border: none;
     cursor: pointer;
     color: white;
-    text-align: left;
-    width: auto; /* Adjust width automatically */
+    padding: 8px;
+    margin-right: 10px;
 }
-.sidebar{
-  background-color: #082759;
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
 }
-.navbar{
-  background-color: #082759;
+.hamburger .line {
+    width: 22px;
+    height: 2.5px;
+    background: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
 
+/* ======== Search Input Styling ======== */
+.search-input {
+    width: 220px;
+    padding: 6px 10px;
+    border-radius: 5px;
+}
+.btn-outline-light {
+    border-color: white;
+    color: white;
+}
+.btn-outline-light:hover {
+    background-color: white;
+    color: #082759;
 }
 
-.navbar-brand{
-color: whitesmoke;
-margin-left: 5rem;
+/* ======== Notification Badge ======== */
+#notificationButton {
+    position: relative;
 }
+#notificationCount {
+    font-size: 10px;
+    padding: 2px 5px;
+}
+
+/* ======== Responsive Adjustments ======== */
+@media (max-width: 992px) {
+    .search-input {
+        width: 150px;
+    }
+    .navbar-brand {
+        font-size: 14px;
+    }
+}
+body {
+    background-color: #ffffff;
+}
+
+
+
+/* === Sidebar Base === */
+.sidebar {
+    background-color: #082759;
+    width: 250px;
+    min-height: 100vh;
+    padding-top: 20px;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    z-index: 1050;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Sidebar Links */
+.sidebar .nav-link {
+    color: white;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+}
+.sidebar .nav-link:hover {
+    background-color: #0b3a80;
+    color: #ffc107;
+    border-radius: 5px;
+}
+.sidebar .nav-link i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+/* Profile Image */
+.sidebar .profile {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 3px solid #fff;
+}
+.white-text {
+    color: #fff;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* === Overlay for Mobile === */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1049;
+}
+
+/* === Responsive Sidebar === */
+
 .table thead th {
             background-color: #082759;
 
@@ -211,6 +338,8 @@ include '../includes/navbar.php';
 include '../includes/sidebar.php';
 include '../includes/edit-profile.php';
 ?>
+<div class="d-flex justify-content-center align-items-center" style="min-height:100vh;">
+
 <div class="content">
 <div class="container mt-5">
     <h1>Resident Complaints</h1>

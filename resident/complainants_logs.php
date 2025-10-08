@@ -77,7 +77,32 @@ foreach ($complaints as $complaint) {
     border-top-color: #343a40; /* Match the background color */
 }
 
+
+
+.navbar{
+  background-color: #082759;
+
+}
+
+.navbar-brand{
+color: whitesmoke;
+}
+
+.content {
+  margin-top: 70px; /* adjust depending on your navbar height */
+}
+
+
+.table thead th {
+            background-color: #082759;
+
+            color: #ffffff;
+            text-align: center;
+        }
+
 .sidebar-toggler {
+      position: fixed;
+
     display: flex;
     align-items: center;
     padding: 10px;
@@ -88,25 +113,23 @@ foreach ($complaints as $complaint) {
     text-align: left;
     width: auto; /* Adjust width automatically */
 }
-.sidebar{
-  background-color: #082759;
+
+
+.sidebar {
+  position: fixed;
+  top: 4rem;       /* same as your margin-top */
+  left: 0;
+  width: 250px;    /* adjust as needed */
+  height:100%; /* full height minus the top offset */
+  overflow-y: auto; /* only scroll sidebar content if it overflows */
+  background: #082759; /* optional: give it a background */
 }
-.navbar{
-  background-color: #082759;
 
+
+.nav-link i {
+    font-size: 3em;
+    margin-right: 0.5em;
 }
-
-.navbar-brand{
-color: whitesmoke;
-}
-
-
-.table thead th {
-            background-color: #082759;
-
-            color: #ffffff;
-            text-align: center;
-        }
 
     </style>
 <body>

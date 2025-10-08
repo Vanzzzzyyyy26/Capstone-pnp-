@@ -98,6 +98,7 @@ try {
 }
 
 .sidebar-toggler {
+     position: fixed;
     display: flex;
     align-items: center;
     padding: 10px;
@@ -108,9 +109,7 @@ try {
     text-align: left;
     width: auto; /* Adjust width automatically */
 }
-.sidebar{
-  background-color: #082759;
-}
+
 .navbar{
   background-color: #082759;
 
@@ -119,6 +118,23 @@ try {
 .navbar-brand{
 color: whitesmoke;
 }
+
+
+
+.sidebar {
+  position: fixed;
+  top: 4rem;       /* same as your margin-top */
+  left: 0;
+  width: 250px;    /* adjust as needed */
+  height: 100%; /* full height minus the top offset */
+  overflow-y: auto; /* only scroll sidebar content if it overflows */
+  background: #082759; /* optional: give it a background */
+}
+.nav-link i {
+    font-size: 3em;
+    margin-right: 0.5em;
+}
+
     </style>
 </head>
 <body>

@@ -2,21 +2,15 @@
 include '../connection/dbconn.php';
 session_start();
 
-$cp_number = isset($_SESSION['cp_number']) ? $_SESSION['cp_number'] : '';
-$firstName = isset($_SESSION['first_name']) ? $_SESSION['first_name'] : '';
-$middleName = isset($_SESSION['middle_name']) ? $_SESSION['middle_name'] : '';
-$lastName = isset($_SESSION['last_name']) ? $_SESSION['last_name'] : '';
-$extensionName = isset($_SESSION['extension_name']) ? $_SESSION['extension_name'] : '';
-$barangay_name = isset($_SESSION['barangay_name']) ? $_SESSION['barangay_name'] : '';
+$cp_number     = $_SESSION['cp_number'] ?? '';
+$firstName     = $_SESSION['first_name'] ?? '';
+$middleName    = $_SESSION['middle_name'] ?? '';
+$lastName      = $_SESSION['last_name'] ?? '';
+$extensionName = $_SESSION['extension_name'] ?? '';
+$barangay_name = $_SESSION['barangay_name'] ?? '';
 
-// Check if the user is logged in and has the correct permissions (optional)
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../reg/login.php");
-    exit();
-}
-
-// Get the logged-in user's ID from the session
-$user_id = $_SESSION['user_id'];
+// ✅ If user_id is missing, default to 0 (no logs)
+$user_id = $_SESSION['user_id'] ?? 0;
 
 // Define the number of logs per page
 $logs_per_page = 10;
@@ -30,27 +24,35 @@ if ($page < 1) {
 // Calculate the starting row for the query
 $offset = ($page - 1) * $logs_per_page;
 
-// Fetch the total number of login logs for pagination calculation
-$total_stmt = $pdo->prepare("SELECT COUNT(*) FROM tbl_login_logs WHERE user_id = :user_id");
-$total_stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-$total_stmt->execute();
-$total_logs = $total_stmt->fetchColumn();
+// ✅ Fetch the total number of login logs (only if user_id > 0)
+if ($user_id > 0) {
+    $total_stmt = $pdo->prepare("SELECT COUNT(*) FROM tbl_login_logs WHERE user_id = :user_id");
+    $total_stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+    $total_stmt->execute();
+    $total_logs = $total_stmt->fetchColumn();
+} else {
+    $total_logs = 0;
+}
 
-// Fetch the login logs for the current page
-$stmt = $pdo->prepare("SELECT tbl_login_logs.*, tbl_users.cp_number
-                       FROM tbl_login_logs
-                       JOIN tbl_users ON tbl_login_logs.user_id = tbl_users.user_id
-                       WHERE tbl_login_logs.user_id = :user_id
-                       ORDER BY tbl_login_logs.login_time DESC
-                       LIMIT :limit OFFSET :offset");
-$stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-$stmt->bindValue(':limit', $logs_per_page, PDO::PARAM_INT);
-$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-$stmt->execute();
-$logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// ✅ Fetch the login logs for the current page (if user_id exists)
+if ($user_id > 0) {
+    $stmt = $pdo->prepare("SELECT tbl_login_logs.*, tbl_users.cp_number
+                           FROM tbl_login_logs
+                           JOIN tbl_users ON tbl_login_logs.user_id = tbl_users.user_id
+                           WHERE tbl_login_logs.user_id = :user_id
+                           ORDER BY tbl_login_logs.login_time DESC
+                           LIMIT :limit OFFSET :offset");
+    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+    $stmt->bindValue(':limit', $logs_per_page, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $logs = []; // ✅ No logs if not logged in
+}
 
 // Calculate the total number of pages
-$total_pages = ceil($total_logs / $logs_per_page);
+$total_pages = ($total_logs > 0) ? ceil($total_logs / $logs_per_page) : 1;
 ?>
 
 <!DOCTYPE html>
@@ -82,28 +84,158 @@ $total_pages = ceil($total_logs / $logs_per_page);
     border-top-color: #343a40; /* Match the background color */
 }
 
+
+.navbar {
+    background-color: #082759 !important;
+    padding: 10px 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.navbar-brand {
+    color: whitesmoke !important;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+.navbar-brand:hover {
+    color: #ffc107 !important;
+}
+
+/* ======== Logo Styling ======== */
+.logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.logo-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* ======== Sidebar Toggler (Hamburger) ======== */
 .sidebar-toggler {
     display: flex;
     align-items: center;
-    padding: 10px;
-    background-color: transparent; /* Changed from #082759 to transparent */
+    background-color: transparent;
     border: none;
     cursor: pointer;
     color: white;
-    text-align: left;
-    width: auto; /* Adjust width automatically */
+    padding: 8px;
+    margin-right: 10px;
 }
-.sidebar{
-  background-color: #082759;
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
 }
-.navbar{
-  background-color: #082759;
+.hamburger .line {
+    width: 22px;
+    height: 2.5px;
+    background: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
 
+/* ======== Search Input Styling ======== */
+.search-input {
+    width: 220px;
+    padding: 6px 10px;
+    border-radius: 5px;
+}
+.btn-outline-light {
+    border-color: white;
+    color: white;
+}
+.btn-outline-light:hover {
+    background-color: white;
+    color: #082759;
 }
 
-.navbar-brand{
-color: whitesmoke;
+/* ======== Notification Badge ======== */
+#notificationButton {
+    position: relative;
 }
+#notificationCount {
+    font-size: 10px;
+    padding: 2px 5px;
+}
+
+/* ======== Responsive Adjustments ======== */
+
+body {
+    background-color: #ffffff;
+}
+
+
+
+/* === Sidebar Base === */
+.sidebar {
+    background-color: #082759;
+    width: 250px;
+    min-height: 100vh;
+    padding-top: 20px;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    z-index: 1050;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Sidebar Links */
+.sidebar .nav-link {
+    color: white;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+}
+.sidebar .nav-link:hover {
+    background-color: #0b3a80;
+    color: #ffc107;
+    border-radius: 5px;
+}
+.sidebar .nav-link i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+/* Profile Image */
+.sidebar .profile {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 3px solid #fff;
+}
+.white-text {
+    color: #fff;
+    font-size: 14px;
+    margin: 0;
+}
+
+
+.content {
+    margin-left: 250px; /* Same as initial width of the sidebar */
+    transition: margin-left 0.3s ease;
+    padding: 20px; /* Adjust padding as needed */
+    width: 80%; /* Calculate remaining width */
+}
+/* === Overlay for Mobile === */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1049;
+}
+
+/* === Responsive Sidebar === */
+
 
 
 .table thead th {
@@ -127,6 +259,7 @@ include '../includes/sidebar.php';
 include '../includes/edit-profile.php';
 ?>
 
+<div class="d-flex justify-content-center align-items-center" style="min-height:100vh;">
 
    <div class="content">
     <div class="container mt-5">

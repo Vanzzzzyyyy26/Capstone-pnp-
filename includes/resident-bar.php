@@ -1,4 +1,4 @@
- <div  style="margin-top: 5rem;" class="sidebar" id="sidebar">
+ <div class="sidebar" id="sidebar">
         <!-- Toggle button inside sidebar -->
        
 

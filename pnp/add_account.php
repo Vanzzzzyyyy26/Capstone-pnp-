@@ -259,17 +259,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <select id="barangay" name="barangay" class="form-select" required>
                         <?php
                         // Array of barangays of echague
-                        $barangays = [
-                            "Angoluan", "Annafunan", "Arabiat", "Aromin", "Babaran", "Bacradal", "Benguet", "Buneg", "Busilelao", "Cabugao (Poblacion)",
+                         $barangays = [
+                            "Angoluan", "Annafunan", "Arabiat", "Aromin", "Babaran", "Bacradal", "Benguet", "Buneg", "Busilelao", "Cabugao ",
                             "Caniguing", "Carulay", "Castillo", "Dammang East", "Dammang West", "Diasan", "Dicaraoyan", "Dugayong", "Fugu", "Garit Norte",
                             "Garit Sur", "Gucab", "Gumbauan", "Ipil", "Libertad", "Mabbayad", "Mabuhay", "Madadamian", "Magleticia", "Malibago", "Maligaya",
                             "Malitao", "Narra", "Nilumisu", "Pag-asa", "Pangal Norte", "Pangal Sur", "Rumang-ay", "Salay", "Salvacion", "San Antonio Ugad",
-                            "San Antonio Minit", "San Carlos", "San Fabian", "San Felipe", "San Juan", "San Manuel (formerly Atelan)", "San Miguel", "San Salvador",
-                            "Santa Ana", "Santa Cruz", "Santa Maria", "Santa Monica", "Santo Domingo", "Silauan Sur (Poblacion)", "Silauan Norte (Poblacion)",
-                            "Sinabbaran", "Soyung (Poblacion)", "Taggappan (Poblacion)", "Villa Agullana", "Villa Concepcion", "Villa Cruz", "Villa Fabia",
+                            "San Antonio Minit", "San Carlos", "San Fabian", "San Felipe", "San Juan", "San Manuel", "San Miguel", "San Salvador",
+                            "Santa Ana", "Santa Cruz", "Santa Maria", "Santa Monica", "Santo Domingo", "Silauan Sur ", "Silauan Norte ",
+                            "Sinabbaran", "Soyung ", "Taggappan ", "Villa Agullana", "Villa Concepcion", "Villa Cruz", "Villa Fabia",
                             "Villa Gomez", "Villa Nuesa", "Villa Padian", "Villa Pereda", "Villa Quirino", "Villa Remedios", "Villa Serafica", "Villa Tanza",
-                            "Villa Verde", "Villa Vicenta", "Villa Ysmael (formerly T. Belen)"
+                            "Villa Verde", "Villa Vicenta", "Villa Ysmael "
                         ];
+
 
                         // Display barangays as options
                         foreach ($barangays as $barangay) {

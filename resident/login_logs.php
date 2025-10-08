@@ -63,6 +63,18 @@ $total_pages = ceil($total_logs / $logs_per_page);
 
 
 <style>
+
+
+.sidebar {
+  position: fixed;
+  top: 4rem;       /* same as your margin-top */
+  left: 0;
+  width: 250px;    /* adjust as needed */
+  height: 100%; /* full height minus the top offset */
+  overflow-y: auto; /* only scroll sidebar content if it overflows */
+  background: #082759; /* optional: give it a background */
+}
+
 .popover-content {
     background-color: #343a40; /* Dark background to contrast with white */
     color: #ffffff; /* White text color */
@@ -108,6 +120,12 @@ color: whitesmoke;
             color: #ffffff;
             text-align: center;
         }
+
+        .nav-link i {
+    font-size: 3em;
+    margin-right: 0.5em;
+}
+
     </style>
     
     <?php 

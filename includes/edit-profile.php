@@ -53,7 +53,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="editSelfiePath" class="form-label">Selfie Path</label>
+                        <label for="editSelfiePath" class="form-label">ID </label>
                         <input type="file" class="form-control" id="editSelfiePath" name="selfie_path">
                     </div>
                     <button type="submit" class="btn btn-primary">Save changes</button>
