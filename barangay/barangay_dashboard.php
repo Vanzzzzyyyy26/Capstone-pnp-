@@ -642,7 +642,7 @@ document.getElementById('purokMaxInfo').textContent = `${purokDataLabels[maxPuro
                 backgroundColor: [
                     '#00c4b3ff', // Blue
                     '#1cc88a', // Green
-                    '#36b9cc', // Light Blue
+                    '#ff0c86ff', // Light Blue
                     '#f6c23e', // Yellow
                     '#060303ff'  // Red
                 ],
