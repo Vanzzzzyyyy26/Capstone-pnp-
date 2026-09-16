@@ -78,7 +78,7 @@ function sendSMSNotification($phone, $name, $status) {
         'apikey' => '', // Replace with your actual API key
         'number' => $phone,
         'message' => $message,
-        'sendername' => 'Copwatch'
+        'sendername' => ''
     );
     curl_setopt($ch, CURLOPT_URL, 'https://semaphore.co/api/v4/messages');
     curl_setopt($ch, CURLOPT_POST, 1);
