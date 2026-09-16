@@ -316,13 +316,139 @@ $categoryData = fetchComplaintCategoriesData($pdo, $year, $from_date, $to_date);
 
 
 
-.navbar{
-  background-color: #082759;
 
+
+
+
+.navbar {
+    background-color: #082759 !important;
+    padding: 10px 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.navbar-brand {
+    color: whitesmoke !important;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+.navbar-brand:hover {
+    color: #ffc107 !important;
 }
 
-.navbar-brand{
-color: whitesmoke;
+/* ======== Logo Styling ======== */
+.logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.logo-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* ======== Sidebar Toggler (Hamburger) ======== */
+.sidebar-toggler {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: white;
+    padding: 8px;
+    margin-right: 10px;
+}
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+}
+.hamburger .line {
+    width: 22px;
+    height: 2.5px;
+    background: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+/* ======== Search Input Styling ======== */
+.search-input {
+    width: 220px;
+    padding: 6px 10px;
+    border-radius: 5px;
+}
+.btn-outline-light {
+    border-color: white;
+    color: white;
+}
+.btn-outline-light:hover {
+    background-color: white;
+    color: #082759;
+}
+
+
+.sidebar {
+    background-color: #082759;
+    width: 250px;
+    height: 100%;
+    padding-top: 20px;
+    position: fixed;
+    left: 0;
+    z-index: 1050;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Sidebar Links */
+.sidebar .nav-link {
+    color: white;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+}
+.sidebar .nav-link:hover {
+    background-color: #0b3a80;
+    color: #ffc107;
+    border-radius: 5px;
+}
+.sidebar .nav-link i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+/* Profile Image */
+.sidebar .profile {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 3px solid #fff;
+}
+.white-text {
+    color: #fff;
+    font-size: 14px;
+    margin: 0;
+}
+
+
+.content {
+    margin-left: 250px; /* Same as initial width of the sidebar */
+    transition: margin-left 0.3s ease;
+    padding: 40px; /* Adjust padding as needed */
+    width: 80%; /* Calculate remaining width */
+}
+/* === Overlay for Mobile === */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 60px; /* Below navbar */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1049;
 }
         
 
@@ -562,7 +688,7 @@ var genderDataLabels = <?php echo json_encode(array_column($genderData, 'gender'
 var totalGenderCount = genderDataValues.reduce((a, b) => a + b, 0); // Total count of gender data
 
 var genderChart = new Chart(ctxGender, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
         labels: genderDataLabels.map((label, index) => `${label} (${((genderDataValues[index] / totalGenderCount) * 100).toFixed(1)}%)`),
         datasets: [{

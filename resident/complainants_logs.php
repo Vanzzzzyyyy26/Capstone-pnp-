@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('modalComplaintsPerson').value = complaint.complaints_person;
         document.getElementById('modalAno').value = complaint.ano;
         document.getElementById('modalSaan').value = complaint.	barangay_saan;
-        document.getElementById('modalKailan').value = complaint.kailan;
+        document.getElementById('modalKailan').value = complaint.kailan_date;
         document.getElementById('modalPaano').value = complaint.paano;
         document.getElementById('modalBakit').value = complaint.bakit;
         

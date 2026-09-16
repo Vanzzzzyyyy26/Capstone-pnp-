@@ -10,6 +10,7 @@
 
         <!-- Logo -->
         <a class="navbar-brand fw-bold" href="#">
+
             <img src="../assets/complaints.png" alt="Logo" width="40" class="me-2">
             Residents Account
         </a>

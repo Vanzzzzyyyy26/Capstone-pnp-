@@ -325,18 +325,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="row">
         <!-- Profile Picture Upload -->
         <div class="col-md-6 mb-3">
-            <label for="profile_pic" class="form-label">Profile Picture:</label>
+            <label for="profile_pic" class="form-label">Upload Picture:</label>
             <input type="file" id="profile_pic" name="profile_pic" class="form-control" accept="image/*" >
         </div>
 
         <!-- Selfie Upload -->
         <div class="col-md-6 mb-3">
-            <label for="selfie_path" class="form-label">Upload ID:</label>
+            <label for="selfie_path" class="form-label">Upload Valid ID:</label>
             <input type="file" id="selfie_path" name="selfie_path" class="form-control" accept="image/*" >
         </div>
     </div>
             <div class="col-12 mb-3">
-                <label for="security_question" class="form-label">Security Question 1:</label>
+                <label for="security_question" class="form-label">Security Question:</label>
                 <select id="security_question" name="security_question" class="form-select" required>
                     <option value="">Select a question...</option>
                     <option value="What was your childhood nickname?">What was your childhood nickname?</option>
@@ -475,6 +475,10 @@ function checkPasswordMatch() {
 
 
 <?php if (!empty($alertMessage)) { echo $alertMessage; } ?>
+
+
+
+
 
     </script>
 </body>

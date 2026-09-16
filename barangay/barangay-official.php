@@ -17,8 +17,19 @@ $pic_data = $_SESSION['pic_data'] ?? '';
 // Handle form submission for adding new official
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
     if ($_POST['action'] == 'add_official') {
-        $name = $_POST['name'];
-        $position = $_POST['position'];
+        $name = trim($_POST['name']);
+        $position = trim($_POST['position']);
+
+        // Prevent duplicate positions for the same barangay (exclude soft-deleted)
+        $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM tbl_brg_official WHERE position = ? AND barangays_id = ? AND is_deleted = 0");
+        $checkStmt->execute([$position, $barangays_id]);
+        $exists = (int) $checkStmt->fetchColumn();
+
+        if ($exists > 0) {
+            $_SESSION['error'] = "The position \"{$position}\" is already assigned for this barangay.";
+            header("Location: barangay-official.php");
+            exit();
+        }
 
         // File upload handling
         $target_dir = "../uploads/";
@@ -69,9 +80,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         exit();
     } elseif ($_POST['action'] == 'edit_official') {
         $official_id = $_POST['official_id'];
-        $edit_name = $_POST['edit_name'];
-        $edit_position = $_POST['edit_position'];
+        $edit_name = trim($_POST['edit_name']);
+        $edit_position = trim($_POST['edit_position']);
         $image_path = $_POST['existing_image_path'];
+
+        // Prevent assigning a position that already exists for another official in this barangay
+        $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM tbl_brg_official WHERE position = ? AND barangays_id = ? AND is_deleted = 0 AND official_id != ?");
+        $checkStmt->execute([$edit_position, $barangays_id, $official_id]);
+        $exists = (int) $checkStmt->fetchColumn();
+
+        if ($exists > 0) {
+            $_SESSION['error'] = "The position \"{$edit_position}\" is already assigned to another official.";
+            header("Location: barangay-official.php");
+            exit();
+        }
 
         // Check if a new image is uploaded
         if (!empty($_FILES['edit_image']['name'])) {
@@ -236,6 +258,9 @@ body {
 
 
 
+
+
+
 /* === Sidebar Base === */
 .sidebar {
     background-color: #082759;
@@ -384,14 +409,10 @@ include '../includes/edit-profile.php';
         include '../connection/dbconn.php'; 
 
         try {
-            // Prepare the statement
             $stmt = $pdo->prepare("SELECT barangay_name FROM tbl_users_barangay WHERE barangays_id = ?");
-            // Execute the statement with the barangay ID
-            $stmt->execute([$barangays_id]); // Use an appropriate variable name for the barangay ID
-            // Fetch the barangay name
-            $barangay_name = $stmt->fetchColumn(); // Change to a different variable
+            $stmt->execute([$barangays_id]); 
+            $barangay_name = $stmt->fetchColumn(); 
 
-            // Check if a barangay name was found
             if ($barangay_name) {
                 echo "<p class='form-control-plaintext large-text'>" . htmlspecialchars($barangay_name) . "</p>";
             } else {

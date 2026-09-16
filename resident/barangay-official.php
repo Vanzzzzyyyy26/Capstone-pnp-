@@ -145,6 +145,26 @@ include '../includes/resident-bar.php';
 
 <center><div class="content">
     <div class="container mt-5">
+        <div class="form-group row">
+    <label for="barangay" class="col-md-3 col-form-label large-text"><?php 
+        include '../connection/dbconn.php'; 
+
+        try {
+            $stmt = $pdo->prepare("SELECT barangay_name FROM tbl_users_barangay WHERE barangays_id = ?");
+            $stmt->execute([$barangay]); 
+            $barangay_name = $stmt->fetchColumn(); 
+
+            if ($barangay_name) {
+                echo "<p class='form-control-plaintext large-text'>" . htmlspecialchars($barangay_name) . "</p>";
+            } else {
+                echo "<p class='form-control-plaintext large-text'>No barangay found.</p>";
+            }
+        } catch (PDOException $e) {
+            echo "Error fetching barangay name: " . htmlspecialchars($e->getMessage());
+        }
+        ?></label>
+    <div class="col-md-6">
+</div>
         <h4 class="mb-4">Officials List</h4>
 
         <div class="table">
